@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "nonebot-plugin-word-bank3"
+version = "0.1.0.a0"
+description = "有数据问答插件"
+authors = ["kexue <x@kexue.io>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+nonebot-adapter-onebot = ">=2.0.0-beta.1"
+nonebot2 = ">=2.0.0-beta.2"
+python = "^3.8"
+nonebot-plugin-tortoise-orm = "^0.0.1-alpha.3"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+flake8 = "^4.0.1"
+nb-cli = "^0.6.7"
+nonebug = "^0.2.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
