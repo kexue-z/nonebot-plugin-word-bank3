@@ -16,9 +16,9 @@ from nonebot.adapters.onebot.v11.permission import (
     PRIVATE_FRIEND,
 )
 
-from .models import MatchType
+from .models.word_bank import WordBank, WordBankData
 
-add_model("nonebot_plugin_word_bank3.models")
+add_model("nonebot_plugin_word_bank3.models.word_bank")
 
 reply_type = "random"
 
