@@ -17,6 +17,7 @@ from nonebot.adapters.onebot.v11.permission import (
 )
 
 from .models.word_bank import WordBank, WordBankData
+from .models.typing_models import MatchType
 
 add_model("nonebot_plugin_word_bank3.models.word_bank")
 

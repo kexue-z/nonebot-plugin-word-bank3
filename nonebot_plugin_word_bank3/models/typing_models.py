@@ -28,7 +28,12 @@ class IndexType(Enum):
     """私聊"""
 
 
+class Answer(BaseModel):
+    answer: str
+    weight: int
+
+
 class WordEntry(BaseModel):
     key: str
-    answer: List[WordBankData]
+    answer: List[Answer]
     require_to_me: bool
