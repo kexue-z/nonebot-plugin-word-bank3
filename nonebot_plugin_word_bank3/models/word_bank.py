@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Tuple, Union, Optional
 from datetime import datetime
 
 from tortoise import fields
@@ -131,38 +131,58 @@ class WordBank(Model):
         :返回:
           - `List[str]`: 问句列表
         """
-        pass
+        keys: List[str] = []
+        wb_list = await WordBank.filter(index_type=index_type, index_id=index_id).all()
+        for wb in wb_list:
+            keys.append(wb.key)
+        return keys
 
     @staticmethod
-    async def delete(
+    async def delete_by_key(
         index_type: IndexType,
         index_id: int,
-        match_type: Optional[MatchType] = None,
-        key: Optional[str] = None,
-        creator_id: Optional[int] = None,
-        answer_id: Optional[int] = None,
+        key: str,
+        match_type: MatchType = MatchType.congruence,
         require_to_me: bool = False,
-    ) -> bool:
+    ) -> Tuple[List[int], bool]:
+
         """
         :说明: `delete`
-        > 删除指定问答词条 (可以指定 `问句` 或 `创建者ID` 或 `答句ID`)
+        > 删除指定问答词条 (可以指定 `问句`)
 
         :参数:
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
           * `index_id: int`: 索引ID
+          * `key: str`: 问句
 
         :可选参数:
-          * `match_type: Optional[MatchType] = None`: 配类型: MatchType.congruence 全匹配,
+          * `match_type: Optional[MatchType] = None`: 匹配类型: MatchType.congruence 全匹配,
                 MatchType.include
-          * `key: Optional[str] = None`: 问句
-          * `creator_id: Optional[int] = None`: 创建人ID
-          * `answer_id: Optional[int] = None`: 答句ID
           * `require_to_me: bool = False`: 是否需要@
 
         :返回:
-          - `bool`: 是否删除成功
+          - `Tuple[List[int], bool]`: 已删除的答句ID列表, 是否删除成功
         """
-        pass
+        match = await WordBank.filter(
+            index_type=index_type.value,
+            index_id=index_id,
+            match_type=match_type.value,
+            key=key,
+            require_to_me=require_to_me,
+        )
+        ans_id_list = [ans.answer_id for ans in match]
+        for id in ans_id_list:
+            await WordBankData.filter(id=id).delete()
+
+        await WordBank.filter(
+            index_type=index_type.value,
+            index_id=index_id,
+            match_type=match_type.value,
+            key=key,
+            require_to_me=require_to_me,
+        ).delete()
+
+        return ans_id_list, True
 
     @staticmethod
     async def delete_ans_id(ans_id: Union[int, List[int]]) -> bool:

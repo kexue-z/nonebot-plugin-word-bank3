@@ -18,7 +18,7 @@ async def test_word_bank_set(app: App, db):
             require_to_me=False,
             weight=10,
         )
-        assert res is True
+        assert res
 
 
 @pytest.mark.asyncio
@@ -58,3 +58,33 @@ async def test_word_bank_match(app: App, db):
         assert res.key == "hello_match_test"
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test"
+
+
+@pytest.mark.asyncio
+async def test_word_bank_delete_by_key(app: App, db):
+
+    from typing import List
+
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import IndexType, MatchType
+
+    async with app.test_server():
+        # 添加数据
+        res = await WordBank.set(
+            index_type=IndexType.group,
+            index_id=114514,
+            match_type=MatchType.congruence,
+            key="hello_delete_test",
+            answer="world_delete_test",
+            creator_id=1919810,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res
+
+        # 删除 指定词条
+        ans_id_list, res = await WordBank.delete_by_key(
+            index_type=IndexType.group, index_id=114514, key="hello_delete_test"
+        )
+        assert isinstance(ans_id_list, List)
+        assert res

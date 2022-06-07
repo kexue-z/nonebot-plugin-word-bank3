@@ -31,5 +31,4 @@
     "poetry.lock": true,
     "LICENSE": true
   },
-  "cSpell.words": ["wordbank"]
 }

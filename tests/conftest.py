@@ -1,4 +1,3 @@
-from typing import Set
 from pathlib import Path
 
 import pytest
@@ -26,4 +25,5 @@ async def db():
     from os import remove
 
     yield
+
     remove("db.sqlite3")
