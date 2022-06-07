@@ -1,3 +1,4 @@
+import re
 from typing import List, Tuple, Union, Optional
 from datetime import datetime
 
@@ -35,6 +36,7 @@ class WordBank(Model):
     @staticmethod
     async def match(
         index_type: IndexType,
+        index_id: int,
         key: str,
         match_type: MatchType,
         to_me: bool = False,
@@ -55,19 +57,52 @@ class WordBank(Model):
         :返回:
           - `Optional[WordEntry]`: 如匹配到词条则返回结果
         """
-        if wb_list := await WordBank.filter(
-            index_type=index_type.value,
-            key=key,
-            match_type=match_type.value,
-            require_to_me=to_me,
-        ):
-            answers: List[Answer] = []
-            for wb in wb_list:
-                data = await WordBankData.get(id=wb.answer_id)
-                answers.append(Answer(answer=data.answer, weight=wb.weight))
-            wb = WordEntry(key=key, answer=answers, require_to_me=to_me)
+        answers: List[Answer] = []
+        if match_type == MatchType.congruence:
+            if wb_list := await WordBank.filter(
+                index_type=index_type.value,
+                index_id=index_id,
+                key=key,
+                match_type=match_type.value,
+                require_to_me=to_me,
+            ):
 
-            return wb
+                for wb_ans in wb_list:
+                    data = await WordBankData.get(id=wb_ans.answer_id)
+                    answers.append(Answer(answer=data.answer, weight=wb_ans.weight))
+                we = WordEntry(key=key, answer=answers, require_to_me=to_me)
+
+                return we
+
+        elif match_type == MatchType.include:
+            if wb_list := await WordBank.filter(
+                index_type=index_type.value,
+                index_id=index_id,
+                match_type=match_type.value,
+                require_to_me=to_me,
+            ):
+                for wb in wb_list:
+                    if wb.key in key:
+                        data = await WordBankData.get(id=wb.answer_id)
+                        answers.append(Answer(answer=data.answer, weight=wb.weight))
+
+        elif match_type == MatchType.regex:
+            if wb_list := await WordBank.filter(
+                index_type=index_type.value,
+                index_id=index_id,
+                match_type=match_type.value,
+                require_to_me=to_me,
+            ):
+                for wb in wb_list:
+                    try:
+                        if bool(re.search(wb.key, key, re.S)):
+                            data = await WordBankData.get(id=wb.answer_id)
+                            answers.append(Answer(answer=data.answer, weight=wb.weight))
+                    except re.error:
+                        continue
+
+        we = WordEntry(key=key, answer=answers, require_to_me=to_me)
+        return we
 
     @staticmethod
     async def set(

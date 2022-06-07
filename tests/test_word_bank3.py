@@ -33,7 +33,7 @@ async def test_word_bank_match(app: App, db):
     )
 
     async with app.test_server():
-        # 添加一条数据
+        # 添加 全匹配词条
         res = await WordBank.set(
             index_type=IndexType.group,
             index_id=1,
@@ -49,6 +49,7 @@ async def test_word_bank_match(app: App, db):
         # 查询
         res = await WordBank.match(
             index_type=IndexType.group,
+            index_id=1,
             match_type=MatchType.congruence,
             key="hello_match_test",
             to_me=False,
@@ -58,6 +59,60 @@ async def test_word_bank_match(app: App, db):
         assert res.key == "hello_match_test"
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test"
+
+        # 添加 模糊匹配词条
+        res = await WordBank.set(
+            index_type=IndexType.group,
+            index_id=1,
+            match_type=MatchType.include,
+            key="include",
+            answer="world_match_test_include",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+
+        # 查询
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=1,
+            match_type=MatchType.include,
+            key="test_include",
+            to_me=False,
+        )
+
+        assert isinstance(res, WordEntry)
+        assert res.key == "test_include"
+        assert isinstance(res.answer[0], Answer)
+        assert res.answer[0].answer == "world_match_test_include"
+
+        # 添加 模糊正则词条
+        res = await WordBank.set(
+            index_type=IndexType.group,
+            index_id=1,
+            match_type=MatchType.regex,
+            key="[你|我|他]好",
+            answer="world_match_test_regex",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+
+        # 查询
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=1,
+            match_type=MatchType.regex,
+            key="你好",
+            to_me=False,
+        )
+
+        assert isinstance(res, WordEntry)
+        assert res.key == "你好"
+        assert isinstance(res.answer[0], Answer)
+        assert res.answer[0].answer == "world_match_test_regex"
 
 
 @pytest.mark.asyncio
