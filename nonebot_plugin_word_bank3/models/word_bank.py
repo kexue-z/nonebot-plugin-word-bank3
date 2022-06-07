@@ -46,8 +46,8 @@ class WordBank(Model):
         :参数:
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
           * `key: str`: 问句
-          * `match_type: MatchType`: 匹配类型: MatchType.congruence 全匹配, MatchType.include
-                模糊匹配, MatchType.regex 正则匹配, MatchType.at @匹配
+          * `match_type: MatchType`: 匹配类型: MatchType.congruence 全匹配,
+                MatchType.include 模糊匹配, MatchType.regex 正则匹配
 
         :可选参数:
           * `to_me: bool = False`: 是否需要@
@@ -88,7 +88,7 @@ class WordBank(Model):
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
           * `index_id: int`: 索引ID
           * `match_type: MatchType`: 匹配类型: MatchType.congruence 全匹配, MatchType.include
-                模糊匹配, MatchType.regex 正则匹配, MatchType.at @匹配
+                模糊匹配, MatchType.regex 正则匹配
           * `key: str`: 问句
           * `answer: str`: 答句
           * `creator_id: int`: 创建人ID
@@ -217,9 +217,10 @@ class WordBank(Model):
 
         :可选参数:
           * `index_id: Optional[int] = None`: 索引ID
-          * `index_type: Optional[IndexType] = None`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
-          * `match_type: Optional[MatchType] = None`: 匹配类型: MatchType.congruence 全匹配, MatchType.include
-                模糊匹配, MatchType.regex 正则匹配, MatchType.at @匹配
+          * `index_type: Optional[IndexType] = None`: 索引类型: IndexType.group 群聊,
+                IndexType.private 私聊
+          * `match_type: Optional[MatchType] = None`: 匹配类型: MatchType.congruence 全匹配,
+                MatchType.include 模糊匹配, MatchType.regex 正则匹配
 
         :返回:
           - `bool`: 是否删除成功

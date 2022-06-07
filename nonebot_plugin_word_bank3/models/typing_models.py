@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class MatchType(Enum):
-    """匹配类型 全匹配(1) 模糊匹配(2) 正则匹配(3) @匹配(4)"""
+    """匹配类型 全匹配(1) 模糊匹配(2) 正则匹配(3)"""
 
     congruence = 1
     """全匹配(==)"""
@@ -13,8 +13,6 @@ class MatchType(Enum):
     """模糊匹配(in)"""
     regex = 3
     """正则匹配(regex)"""
-    at = 4
-    """@匹配"""
 
 
 class IndexType(Enum):
