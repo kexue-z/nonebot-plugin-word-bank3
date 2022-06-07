@@ -185,37 +185,66 @@ class WordBank(Model):
         return ans_id_list, True
 
     @staticmethod
-    async def delete_ans_id(ans_id: Union[int, List[int]]) -> bool:
+    async def delete_by_answer_id(
+        answer_id_list: List[int],
+    ) -> Tuple[List[int], bool]:
         """
-        :说明: `delete_ans_id`
-        > 删除指定答句ID
+        :说明: `delete_by_answer_id`
+        > 删除指定答句ID对应的词条
 
         :参数:
-          * `ans_id: Union[int, List[int]]`: 答句ID 或 答句ID 列表
+          * `answer_id: Union[int, List[int]]`: 答句ID列表
+
+        :返回:
+          - `Tuple[List[int], bool]`: 已删除的答句ID列表, 是否删除成功
+        """
+        for id in answer_id_list:
+            await WordBank.filter(answer_id=id).delete()
+            await WordBankData.filter(id=id).delete()
+        return answer_id_list, True
+
+    @staticmethod
+    async def clear(
+        index_id: Optional[int] = None,
+        index_type: Optional[IndexType] = None,
+        match_type: Optional[MatchType] = None,
+    ) -> bool:
+        """
+        :说明: `clear`
+        > 清空词库
+
+        若为参数均为空则清空所有词库
+
+        :可选参数:
+          * `index_id: Optional[int] = None`: 索引ID
+          * `index_type: Optional[IndexType] = None`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
+          * `match_type: Optional[MatchType] = None`: 匹配类型: MatchType.congruence 全匹配, MatchType.include
+                模糊匹配, MatchType.regex 正则匹配, MatchType.at @匹配
 
         :返回:
           - `bool`: 是否删除成功
         """
-        pass
 
-    @staticmethod
-    async def clear(
-        index_type: IndexType,
-        index_id: int,
-        creator_id: Optional[int] = None,
-    ) -> bool:
-        """
-        :说明: `clear`
-        > 清空索引下的所有问答词条
+        if index_id is None and index_type is None and match_type is None:
+            await WordBank.all().delete()
+            await WordBankData.all().delete()
+            return True
 
-        :参数:
-          * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
-          * `index_id: int`: 索引ID
+        if index_id and index_type:
+            match = await WordBank.filter(
+                index_id=index_id,
+                index_type=index_type.value,
+                match_type=match_type.value if match_type else None,
+            )
+            ans_id_list = [ans.answer_id for ans in match]
+            for id in ans_id_list:
+                await WordBankData.filter(id=id).delete()
 
-        :可选参数:
-          * `creator_id: Optional[int] = None`: 创建人ID
+            await WordBank.filter(
+                index_id=index_id,
+                index_type=index_type.value,
+            ).delete()
 
-        :返回:
-          - `bool`: 是否清空成功
-        """
-        pass
+            return True
+
+        return False

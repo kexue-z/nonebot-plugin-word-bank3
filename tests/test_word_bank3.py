@@ -88,3 +88,39 @@ async def test_word_bank_delete_by_key(app: App, db):
         )
         assert isinstance(ans_id_list, List)
         assert res
+
+
+@pytest.mark.asyncio
+async def test_word_bank_clear_all(app: App, db):
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import IndexType, MatchType
+
+    async with app.test_server():
+        # 添加数据
+        for i in range(100):
+            res = await WordBank.set(
+                index_type=IndexType.group,
+                index_id=114514 if i >= 50 else 114,
+                match_type=MatchType.congruence if i >= 25 else MatchType.include,
+                key=f"hello_clear_all_test_{i}",
+                answer="hello_clear_all_test_ans_{i}",
+                creator_id=1919810,
+                require_to_me=False,
+                weight=10,
+            )
+            assert res
+
+        # 清空部分数据
+        assert await WordBank.clear(
+            index_id=114,
+            index_type=IndexType.group,
+            match_type=MatchType.include,
+        )
+
+        assert await WordBank.clear(
+            index_id=114,
+            index_type=IndexType.group,
+        )
+
+        # 清空所有数据
+        assert await WordBank.clear()
