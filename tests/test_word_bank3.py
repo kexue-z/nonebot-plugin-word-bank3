@@ -22,7 +22,7 @@ async def test_word_bank_set(app: App, db):
 
 
 @pytest.mark.asyncio
-async def test_word_bank_match(app: App, db):
+async def test_word_bank_congruence_match(app: App, db):
 
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
@@ -50,7 +50,6 @@ async def test_word_bank_match(app: App, db):
         res = await WordBank.match(
             index_type=IndexType.group,
             index_id=1,
-            match_type=MatchType.congruence,
             key="hello_match_test",
             to_me=False,
         )
@@ -60,6 +59,19 @@ async def test_word_bank_match(app: App, db):
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test"
 
+
+@pytest.mark.asyncio
+async def test_word_bank_include_match(app: App, db):
+
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import (
+        Answer,
+        IndexType,
+        MatchType,
+        WordEntry,
+    )
+
+    async with app.test_server():
         # 添加 模糊匹配词条
         res = await WordBank.set(
             index_type=IndexType.group,
@@ -77,7 +89,6 @@ async def test_word_bank_match(app: App, db):
         res = await WordBank.match(
             index_type=IndexType.group,
             index_id=1,
-            match_type=MatchType.include,
             key="test_include",
             to_me=False,
         )
@@ -87,6 +98,19 @@ async def test_word_bank_match(app: App, db):
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test_include"
 
+
+@pytest.mark.asyncio
+async def test_word_bank_regex_match(app: App, db):
+
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import (
+        Answer,
+        IndexType,
+        MatchType,
+        WordEntry,
+    )
+
+    async with app.test_server():
         # 添加 模糊正则词条
         res = await WordBank.set(
             index_type=IndexType.group,
@@ -104,7 +128,6 @@ async def test_word_bank_match(app: App, db):
         res = await WordBank.match(
             index_type=IndexType.group,
             index_id=1,
-            match_type=MatchType.regex,
             key="你好",
             to_me=False,
         )

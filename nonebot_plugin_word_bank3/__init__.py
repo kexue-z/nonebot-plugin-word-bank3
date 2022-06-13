@@ -1,6 +1,6 @@
 import re
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from asyncio import sleep
 
 from nonebot import on_regex, on_command, on_message
@@ -17,15 +17,24 @@ from nonebot.adapters.onebot.v11.permission import (
 )
 
 from .models.word_bank import WordBank, WordBankData
-from .models.typing_models import MatchType
+from .models.typing_models import IndexType, MatchType, WordEntry
 
 add_model("nonebot_plugin_word_bank3.models.word_bank")
 add_model("nonebot_plugin_word_bank3.models.word_bank_data")
 
-reply_type = "random"
 
+async def wb_match_rule(event: MessageEvent, state: T_State = State()) -> bool:
+    index_type = (
+        IndexType.group if isinstance(event, GroupMessageEvent) else IndexType.private
+    )
 
-def wb_match_rule(event: MessageEvent, state: T_State = State()) -> bool:
+    word_entry: Optional[WordEntry] = await WordBank.match(
+        index_type=index_type,
+        index_id=event.get_session_id(event),
+        key=event.get_message(),
+        match_type=...,
+        to_me=event.is_tome(),
+    )
     msgs = wb.match(get_session_id(event), event.get_message(), to_me=event.is_tome())
     if not msgs:
         return False

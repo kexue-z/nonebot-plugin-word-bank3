@@ -1,10 +1,12 @@
 import re
 from typing import List, Tuple, Union, Optional
+from xml.sax import parseString
 from datetime import datetime
 
 from tortoise import fields
 from tortoise.models import Model
 
+from ..utils import regex_match
 from .typing_models import Answer, IndexType, MatchType, WordEntry
 from .word_bank_data import WordBankData
 
@@ -38,7 +40,6 @@ class WordBank(Model):
         index_type: IndexType,
         index_id: int,
         key: str,
-        match_type: MatchType,
         to_me: bool = False,
     ) -> Optional[WordEntry]:
         """
@@ -47,9 +48,8 @@ class WordBank(Model):
 
         :参数:
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
+          * `index_id: IndexType`: 索引ID: 群聊ID, 私聊ID
           * `key: str`: 问句
-          * `match_type: MatchType`: 匹配类型: MatchType.congruence 全匹配,
-                MatchType.include 模糊匹配, MatchType.regex 正则匹配
 
         :可选参数:
           * `to_me: bool = False`: 是否需要@
@@ -58,48 +58,69 @@ class WordBank(Model):
           - `Optional[WordEntry]`: 如匹配到词条则返回结果
         """
         answers: List[Answer] = []
-        if match_type == MatchType.congruence:
-            if wb_list := await WordBank.filter(
-                index_type=index_type.value,
-                index_id=index_id,
-                key=key,
-                match_type=match_type.value,
-                require_to_me=to_me,
-            ):
+        # 下面这个尝试用for来遍历, 但是有问题 >_<
+        # for mt in MatchType:
+        #     if wb_list := await WordBank.filter(
+        #         index_type=index_type.value,
+        #         index_id=index_id,
+        #         match_type=mt.value,
+        #         require_to_me=to_me,
+        #     ):
+        #         for wb_ans in wb_list:
+        #             if mt == MatchType.congruence and wb_ans.key == key:
+        #                 pass
+        #             elif mt == MatchType.include and (wb_ans.key in key):
+        #                 pass
+        #             elif mt == MatchType.regex and regex_match(wb_ans.key, key):
+        #                 pass
+        #             else:
+        #                 continue
+        #             data = await WordBankData.get(id=wb_ans.answer_id)
+        #             answers.append(Answer(answer=data.answer, weight=wb_ans.weight))
 
-                for wb_ans in wb_list:
-                    data = await WordBankData.get(id=wb_ans.answer_id)
-                    answers.append(Answer(answer=data.answer, weight=wb_ans.weight))
-                we = WordEntry(key=key, answer=answers, require_to_me=to_me)
+        #     return (
+        #         WordEntry(key=key, answer=answers, require_to_me=to_me)
+        #         if answers
+        #         else None
+        #     )
 
-                return we
+        # 下面把每个类型都查询一下
+        if wb_list := await WordBank.filter(
+            index_type=index_type.value,
+            index_id=index_id,
+            key=key,
+            match_type=MatchType.congruence.value,
+            require_to_me=to_me,
+        ):
 
-        elif match_type == MatchType.include:
-            if wb_list := await WordBank.filter(
-                index_type=index_type.value,
-                index_id=index_id,
-                match_type=match_type.value,
-                require_to_me=to_me,
-            ):
-                for wb in wb_list:
-                    if wb.key in key:
+            for wb_ans in wb_list:
+                data = await WordBankData.get(id=wb_ans.answer_id)
+                answers.append(Answer(answer=data.answer, weight=wb_ans.weight))
+
+        if wb_list := await WordBank.filter(
+            index_type=index_type.value,
+            index_id=index_id,
+            match_type=MatchType.include.value,
+            require_to_me=to_me,
+        ):
+            for wb in wb_list:
+                if wb.key in key:
+                    data = await WordBankData.get(id=wb.answer_id)
+                    answers.append(Answer(answer=data.answer, weight=wb.weight))
+
+        if wb_list := await WordBank.filter(
+            index_type=index_type.value,
+            index_id=index_id,
+            match_type=MatchType.regex.value,
+            require_to_me=to_me,
+        ):
+            for wb in wb_list:
+                try:
+                    if bool(re.search(wb.key, key, re.S)):
                         data = await WordBankData.get(id=wb.answer_id)
                         answers.append(Answer(answer=data.answer, weight=wb.weight))
-
-        elif match_type == MatchType.regex:
-            if wb_list := await WordBank.filter(
-                index_type=index_type.value,
-                index_id=index_id,
-                match_type=match_type.value,
-                require_to_me=to_me,
-            ):
-                for wb in wb_list:
-                    try:
-                        if bool(re.search(wb.key, key, re.S)):
-                            data = await WordBankData.get(id=wb.answer_id)
-                            answers.append(Answer(answer=data.answer, weight=wb.weight))
-                    except re.error:
-                        continue
+                except re.error:
+                    continue
 
         we = WordEntry(key=key, answer=answers, require_to_me=to_me)
         return we
@@ -149,9 +170,7 @@ class WordBank(Model):
             creator_id=creator_id,
             weight=weight,
         )
-        if created:
-            return True
-        return False
+        return created
 
     @staticmethod
     async def keys(index_type: IndexType, index_id: int) -> List[str]:
