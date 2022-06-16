@@ -12,8 +12,13 @@ async def app(
     monkeypatch: pytest.MonkeyPatch,
 ) -> App:
     import nonebot
+    from nonebot.adapters.onebot.v11 import Adapter as ONEBOT_V11_Adapter
 
+    driver = nonebot.get_driver()
+    driver.register_adapter(ONEBOT_V11_Adapter)
     nonebot.load_plugin("nonebot_plugin_word_bank3")
+
+    config = driver.config
 
     import nonebot_plugin_word_bank3
 
