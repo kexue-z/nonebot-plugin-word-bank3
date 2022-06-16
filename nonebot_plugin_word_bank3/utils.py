@@ -6,7 +6,7 @@ import httpx
 from nonebot.log import logger
 from nonebot.adapters.onebot.v11 import Message, MessageEvent, GroupMessageEvent
 
-from models.typing_models import IndexType
+from .models.typing_models import IndexType
 
 
 def regex_match(regex: str, text: str) -> bool:
