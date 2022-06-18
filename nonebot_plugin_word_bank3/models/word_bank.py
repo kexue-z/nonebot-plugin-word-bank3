@@ -85,8 +85,6 @@ class WordBank(Model):
         #     )
 
         # 下面把每个类型都查询一下
-        matched = False
-
         if wb_list := await WordBank.filter(
             index_type=index_type.value,
             index_id=index_id,
