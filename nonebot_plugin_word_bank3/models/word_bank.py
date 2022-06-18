@@ -1,12 +1,9 @@
 import re
-from typing import List, Tuple, Union, Optional
-from xml.sax import parseString
-from datetime import datetime
+from typing import List, Tuple, Optional
 
 from tortoise import fields
 from tortoise.models import Model
 
-from ..utils import regex_match
 from .typing_models import Answer, IndexType, MatchType, WordEntry
 from .word_bank_data import WordBankData
 
