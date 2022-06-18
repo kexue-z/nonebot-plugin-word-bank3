@@ -59,6 +59,15 @@ async def test_word_bank_congruence_match(app: App, db):
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test"
 
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=1,
+            key="test",
+            to_me=False,
+        )
+        assert not res
+
 
 @pytest.mark.asyncio
 async def test_word_bank_include_match(app: App, db):
@@ -97,6 +106,15 @@ async def test_word_bank_include_match(app: App, db):
         assert res.key == "test_include"
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test_include"
+
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=1,
+            key="wtf",
+            to_me=False,
+        )
+        assert not res
 
 
 @pytest.mark.asyncio
@@ -137,6 +155,15 @@ async def test_word_bank_regex_match(app: App, db):
         assert isinstance(res.answer[0], Answer)
         assert res.answer[0].answer == "world_match_test_regex"
 
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=1,
+            key="谁好",
+            to_me=False,
+        )
+        assert not res
+
 
 @pytest.mark.asyncio
 async def test_word_bank_delete_by_key(app: App, db):
@@ -166,6 +193,12 @@ async def test_word_bank_delete_by_key(app: App, db):
         )
         assert isinstance(ans_id_list, List)
         assert res
+
+        # 删除不存在词条
+        ans_id_list, res = await WordBank.delete_by_key(
+            index_type=IndexType.group, index_id=114514, key="hello_delete_test"
+        )
+        assert not res
 
 
 @pytest.mark.asyncio

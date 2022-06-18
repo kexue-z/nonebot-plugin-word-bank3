@@ -2,7 +2,7 @@ import pytest
 from nonebug import App
 
 
-@pytest.mark.asyncio
+# @pytest.mark.asyncio
 async def test_word_bank_set(app: App, db):
     """
     测试添加词条 （不知道怎么测）

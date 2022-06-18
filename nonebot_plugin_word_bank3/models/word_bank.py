@@ -85,6 +85,8 @@ class WordBank(Model):
         #     )
 
         # 下面把每个类型都查询一下
+        matched = False
+
         if wb_list := await WordBank.filter(
             index_type=index_type.value,
             index_id=index_id,
@@ -123,7 +125,9 @@ class WordBank(Model):
                     continue
 
         we = WordEntry(key=key, answer=answers, require_to_me=to_me)
-        return we
+        if we.answer:
+            return we
+        return None
 
     @staticmethod
     async def set(
@@ -224,6 +228,8 @@ class WordBank(Model):
             key=key,
             require_to_me=require_to_me,
         )
+        if not match:
+            return [], False
         ans_id_list = [ans.answer_id for ans in match]
         for id in ans_id_list:
             await WordBankData.filter(id=id).delete()
