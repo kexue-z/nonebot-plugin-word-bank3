@@ -56,8 +56,9 @@ async def handle_wb(event: MessageEvent, state: T_State = State()):
         choices.append(ans.answer)
         weights.append(ans.weight)
     msg = random.choices(population=choices, weights=weights)
+    msg = Message(msg)
     await wb_matcher.finish(
-        Message.template(msg[0]).format(
+        Message.template(msg).format(
             nickname=event.sender.card or event.sender.nickname,
             sender_id=event.sender.user_id,
         )
@@ -69,7 +70,7 @@ PERM_GLOBAL = SUPERUSER
 
 
 wb_set_cmd = on_regex(
-    r"^((?:模糊|正则|@)*)\s*问\s*(\S+.*?)\s*答\s*(\S+.*?)\s*$",
+    r"^((?:模糊|正则|@)*)\s*问\s*(\S+.*?)\s*答$(\d+)\s*(\S+.*?)\s*$",
     flags=re.S,
     block=True,
     priority=11,
@@ -118,7 +119,7 @@ async def wb_set(
     index_id = get_session_id(event)
     index_type = get_index_type(event)
 
-    res = await WordBank.set(
+    id, created = await WordBank.set(
         index_type=index_type,
         index_id=index_id,
         match_type=match_type,
@@ -128,8 +129,8 @@ async def wb_set(
         require_to_me=require_to_me,
         weight=10,
     )
-    if res:
-        await matcher.finish(message="我记住了~")
+    if created:
+        await matcher.finish(message=f"问答添加成功编号为: {id}")
 
 
 wb_del_cmd = on_regex(

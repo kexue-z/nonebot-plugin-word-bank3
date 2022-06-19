@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional
 
 from tortoise import fields
 from tortoise.models import Model
+from nonebot.adapters.onebot.v11.utils import unescape
 
 from .typing_models import Answer, IndexType, MatchType, WordEntry
 from .word_bank_data import WordBankData
@@ -30,6 +31,7 @@ class WordBank(Model):
     create_time = fields.DatetimeField(auto_now_add=True)
     """添加时间"""
     block = fields.BooleanField(default=False)
+    """词条是否被停用"""
 
     class Meta:
         table = "wordbank3"
@@ -105,7 +107,6 @@ class WordBank(Model):
                 match_type=MatchType.include.value,
                 require_to_me=to_me,
             ):
-                logger.debug("include:" + str(wb_list))
                 for wb in wb_list:
                     if wb.key in key:
                         data = await WordBankData.get(id=wb.answer_id)
@@ -121,7 +122,9 @@ class WordBank(Model):
             ):
                 for wb in wb_list:
                     try:
-                        if bool(re.search(wb.key, key, re.S)):
+                        _wb_key = unescape(wb.key)
+                        _key = unescape(key)
+                        if bool(re.search(_wb_key, _key, re.S)):
                             data = await WordBankData.get(id=wb.answer_id)
                             answers.append(
                                 Answer(answer=data.answer, weight=wb.weight, id=wb.id)
@@ -147,7 +150,7 @@ class WordBank(Model):
         creator_id: int,
         require_to_me: bool = False,
         weight: int = 10,
-    ) -> bool:
+    ) -> Tuple[int, bool]:
         """
         :说明: `set`
         > 添加词条
@@ -173,7 +176,7 @@ class WordBank(Model):
             raise ValueError("权重必须为 1~10 的整数")
 
         ans = await WordBankData.create(answer=answer)
-        _, created = await WordBank.get_or_create(
+        wb, created = await WordBank.get_or_create(
             index_type=index_type.value,
             index_id=index_id,
             match_type=match_type.value,
@@ -183,7 +186,7 @@ class WordBank(Model):
             creator_id=creator_id,
             weight=weight,
         )
-        return created
+        return wb.id, created
 
     @staticmethod
     async def keys(index_type: IndexType, index_id: int) -> List[str]:
