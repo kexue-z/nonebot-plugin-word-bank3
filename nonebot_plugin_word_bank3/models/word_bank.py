@@ -9,6 +9,8 @@ from .word_bank_data import WordBankData
 
 
 class WordBank(Model):
+    id = fields.BigIntField(pk=True)
+    """问答ID"""
     index_type = fields.SmallIntField(default=1)
     """索引类型"""
     index_id = fields.IntField()
@@ -27,6 +29,7 @@ class WordBank(Model):
     """权重"""
     create_time = fields.DatetimeField(auto_now_add=True)
     """添加时间"""
+    block = fields.BooleanField(default=False)
 
     class Meta:
         table = "wordbank3"
@@ -82,47 +85,57 @@ class WordBank(Model):
         #     )
 
         # 下面把每个类型都查询一下
-        if wb_list := await WordBank.filter(
-            index_type=index_type.value,
-            index_id=index_id,
-            key=key,
-            match_type=MatchType.congruence.value,
-            require_to_me=to_me,
-        ):
+        async def _match(index_type: IndexType) -> WordEntry:
+            if wb_list := await WordBank.filter(
+                index_type=index_type.value,
+                index_id=index_id,
+                key=key,
+                match_type=MatchType.congruence.value,
+                require_to_me=to_me,
+            ):
 
-            for wb_ans in wb_list:
-                data = await WordBankData.get(id=wb_ans.answer_id)
-                answers.append(Answer(answer=data.answer, weight=wb_ans.weight))
-
-        if wb_list := await WordBank.filter(
-            index_type=index_type.value,
-            index_id=index_id,
-            match_type=MatchType.include.value,
-            require_to_me=to_me,
-        ):
-            for wb in wb_list:
-                if wb.key in key:
+                for wb in wb_list:
                     data = await WordBankData.get(id=wb.answer_id)
-                    answers.append(Answer(answer=data.answer, weight=wb.weight))
+                    answers.append(
+                        Answer(answer=data.answer, weight=wb.weight, id=wb.id)
+                    )
 
-        if wb_list := await WordBank.filter(
-            index_type=index_type.value,
-            index_id=index_id,
-            match_type=MatchType.regex.value,
-            require_to_me=to_me,
-        ):
-            for wb in wb_list:
-                try:
-                    if bool(re.search(wb.key, key, re.S)):
+            if wb_list := await WordBank.filter(
+                index_type=index_type.value,
+                index_id=index_id,
+                match_type=MatchType.include.value,
+                require_to_me=to_me,
+            ):
+                for wb in wb_list:
+                    if wb.key in key:
                         data = await WordBankData.get(id=wb.answer_id)
-                        answers.append(Answer(answer=data.answer, weight=wb.weight))
-                except re.error:
-                    continue
+                        answers.append(
+                            Answer(answer=data.answer, weight=wb.weight, id=wb.id)
+                        )
 
-        we = WordEntry(key=key, answer=answers, require_to_me=to_me)
-        if we.answer:
+            if wb_list := await WordBank.filter(
+                index_type=index_type.value,
+                index_id=index_id,
+                match_type=MatchType.regex.value,
+                require_to_me=to_me,
+            ):
+                for wb in wb_list:
+                    try:
+                        if bool(re.search(wb.key, key, re.S)):
+                            data = await WordBankData.get(id=wb.answer_id)
+                            answers.append(
+                                Answer(answer=data.answer, weight=wb.weight, id=wb.id)
+                            )
+                    except re.error:
+                        continue
+
+            we = WordEntry(key=key, answer=answers, require_to_me=to_me)
             return we
-        return None
+
+        _we = await _match(index_type=index_type)
+        _gl_we = await _match(index_type=IndexType._global)
+        _we.answer += _gl_we.answer
+        return _we if _we.answer else None
 
     @staticmethod
     async def set(
@@ -141,6 +154,7 @@ class WordBank(Model):
 
         :参数:
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
+                IndexType._global 全局
           * `index_id: int`: 索引ID
           * `match_type: MatchType`: 匹配类型: MatchType.congruence 全匹配, MatchType.include
                 模糊匹配, MatchType.regex 正则匹配
@@ -179,6 +193,7 @@ class WordBank(Model):
 
         :参数:
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
+                IndexType._global 全局
           * `index_id: int`: 索引ID
 
         :返回:
@@ -205,6 +220,7 @@ class WordBank(Model):
 
         :参数:
           * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
+                IndexType._global 全局
           * `index_id: int`: 索引ID
           * `key: str`: 问句
 
@@ -272,8 +288,8 @@ class WordBank(Model):
 
         :可选参数:
           * `index_id: Optional[int] = None`: 索引ID
-          * `index_type: Optional[IndexType] = None`: 索引类型: IndexType.group 群聊,
-                IndexType.private 私聊
+          * `index_type: IndexType`: 索引类型: IndexType.group 群聊, IndexType.private 私聊
+                IndexType._global 全局
           * `match_type: Optional[MatchType] = None`: 匹配类型: MatchType.congruence 全匹配,
                 MatchType.include 模糊匹配, MatchType.regex 正则匹配
 

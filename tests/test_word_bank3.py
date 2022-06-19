@@ -166,6 +166,150 @@ async def test_word_bank_regex_match(app: App, db):
 
 
 @pytest.mark.asyncio
+async def test_word_bank_gl__match(app: App, db):
+
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import (
+        Answer,
+        IndexType,
+        MatchType,
+        WordEntry,
+    )
+
+    async with app.test_server():
+        # 添加 全局 全匹配词条
+        res = await WordBank.set(
+            index_type=IndexType._global,
+            index_id=1,
+            match_type=MatchType.congruence,
+            key="hello_match_test",
+            answer="world_match_test",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+
+        # 查询
+        res = await WordBank.match(
+            index_type=IndexType._global,
+            index_id=1,
+            key="hello_match_test",
+            to_me=False,
+        )
+
+        assert isinstance(res, WordEntry)
+        assert res.key == "hello_match_test"
+        assert isinstance(res.answer[0], Answer)
+        assert res.answer[0].answer == "world_match_test"
+
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType._global,
+            index_id=1,
+            key="test",
+            to_me=False,
+        )
+        assert not res
+
+
+@pytest.mark.asyncio
+async def test_word_bank_include_match(app: App, db):
+
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import (
+        Answer,
+        IndexType,
+        MatchType,
+        WordEntry,
+    )
+
+    async with app.test_server():
+        # 添加 全局 模糊匹配词条
+        res = await WordBank.set(
+            index_type=IndexType._global,
+            index_id=1,
+            match_type=MatchType.include,
+            key="include",
+            answer="world_match_test_include",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+
+        # 查询
+        res = await WordBank.match(
+            index_type=IndexType._global,
+            index_id=1,
+            key="test_include",
+            to_me=False,
+        )
+
+        assert isinstance(res, WordEntry)
+        assert res.key == "test_include"
+        assert isinstance(res.answer[0], Answer)
+        assert res.answer[0].answer == "world_match_test_include"
+
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType._global,
+            index_id=1,
+            key="wtf",
+            to_me=False,
+        )
+        assert not res
+
+
+@pytest.mark.asyncio
+async def test_word_bank_regex_match(app: App, db):
+
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import (
+        Answer,
+        IndexType,
+        MatchType,
+        WordEntry,
+    )
+
+    async with app.test_server():
+        # 添加 模糊正则词条
+        res = await WordBank.set(
+            index_type=IndexType._global,
+            index_id=1,
+            match_type=MatchType.regex,
+            key="[你|我|他]好",
+            answer="world_match_test_regex",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+
+        # 查询
+        res = await WordBank.match(
+            index_type=IndexType._global,
+            index_id=1,
+            key="你好",
+            to_me=False,
+        )
+
+        assert isinstance(res, WordEntry)
+        assert res.key == "你好"
+        assert isinstance(res.answer[0], Answer)
+        assert res.answer[0].answer == "world_match_test_regex"
+
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType._global,
+            index_id=1,
+            key="谁好",
+            to_me=False,
+        )
+        assert not res
+
+
+@pytest.mark.asyncio
 async def test_word_bank_delete_by_key(app: App, db):
 
     from typing import List

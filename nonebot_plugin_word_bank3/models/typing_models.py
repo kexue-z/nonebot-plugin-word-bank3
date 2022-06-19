@@ -22,11 +22,13 @@ class IndexType(Enum):
     """群聊"""
     private = 2
     """私聊"""
+    _global = 3
 
 
 class Answer(BaseModel):
     answer: str
     weight: int
+    id: int
 
 
 class WordEntry(BaseModel):
