@@ -214,7 +214,7 @@ async def test_word_bank_gl__match(app: App, db):
 
 
 @pytest.mark.asyncio
-async def test_word_bank_include_match(app: App, db):
+async def test_word_bank_gl_include_match(app: App, db):
 
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
@@ -262,7 +262,7 @@ async def test_word_bank_include_match(app: App, db):
 
 
 @pytest.mark.asyncio
-async def test_word_bank_regex_match(app: App, db):
+async def test_word_bank_gl_regex_match(app: App, db):
 
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (

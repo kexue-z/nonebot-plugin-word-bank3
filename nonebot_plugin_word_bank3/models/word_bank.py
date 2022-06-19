@@ -57,7 +57,6 @@ class WordBank(Model):
         :返回:
           - `Optional[WordEntry]`: 如匹配到词条则返回结果
         """
-        answers: List[Answer] = []
         # 下面这个尝试用for来遍历, 但是有问题 >_<
         # for mt in MatchType:
         #     if wb_list := await WordBank.filter(
@@ -86,6 +85,7 @@ class WordBank(Model):
 
         # 下面把每个类型都查询一下
         async def _match(index_type: IndexType) -> WordEntry:
+            answers: List[Answer] = []
             if wb_list := await WordBank.filter(
                 index_type=index_type.value,
                 index_id=index_id,
@@ -93,7 +93,6 @@ class WordBank(Model):
                 match_type=MatchType.congruence.value,
                 require_to_me=to_me,
             ):
-
                 for wb in wb_list:
                     data = await WordBankData.get(id=wb.answer_id)
                     answers.append(
@@ -106,6 +105,7 @@ class WordBank(Model):
                 match_type=MatchType.include.value,
                 require_to_me=to_me,
             ):
+                logger.debug("include:" + str(wb_list))
                 for wb in wb_list:
                     if wb.key in key:
                         data = await WordBankData.get(id=wb.answer_id)
