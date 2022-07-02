@@ -34,7 +34,7 @@ async def test_word_bank_congruence_match(app: App, db):
 
     async with app.test_server():
         # 添加 全匹配词条
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType.group,
             index_id=1,
             match_type=MatchType.congruence,
@@ -82,7 +82,7 @@ async def test_word_bank_include_match(app: App, db):
 
     async with app.test_server():
         # 添加 模糊匹配词条
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType.group,
             index_id=1,
             match_type=MatchType.include,
@@ -130,7 +130,7 @@ async def test_word_bank_regex_match(app: App, db):
 
     async with app.test_server():
         # 添加 模糊正则词条
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType.group,
             index_id=1,
             match_type=MatchType.regex,
@@ -178,7 +178,7 @@ async def test_word_bank_gl__match(app: App, db):
 
     async with app.test_server():
         # 添加 全局 全匹配词条
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType._global,
             index_id=1,
             match_type=MatchType.congruence,
@@ -226,7 +226,7 @@ async def test_word_bank_gl_include_match(app: App, db):
 
     async with app.test_server():
         # 添加 全局 模糊匹配词条
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType._global,
             index_id=1,
             match_type=MatchType.include,
@@ -274,7 +274,7 @@ async def test_word_bank_gl_regex_match(app: App, db):
 
     async with app.test_server():
         # 添加 模糊正则词条
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType._global,
             index_id=1,
             match_type=MatchType.regex,
@@ -319,7 +319,7 @@ async def test_word_bank_delete_by_key(app: App, db):
 
     async with app.test_server():
         # 添加数据
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType.group,
             index_id=114514,
             match_type=MatchType.congruence,
@@ -353,7 +353,7 @@ async def test_word_bank_clear_all(app: App, db):
     async with app.test_server():
         # 添加数据
         for i in range(100):
-            res = await WordBank.set(
+            _, res = await WordBank.set(
                 index_type=IndexType.group,
                 index_id=114514 if i >= 50 else 114,
                 match_type=MatchType.congruence if i >= 25 else MatchType.include,

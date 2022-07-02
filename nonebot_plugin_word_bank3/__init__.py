@@ -55,7 +55,7 @@ async def handle_wb(event: MessageEvent, state: T_State = State()):
     for ans in we.answer:
         choices.append(ans.answer)
         weights.append(ans.weight)
-    msg = random.choices(population=choices, weights=weights)
+    msg = random.choices(population=choices, weights=weights, k=1)[0]
     msg = Message(msg)
     await wb_matcher.finish(
         Message.template(msg).format(
