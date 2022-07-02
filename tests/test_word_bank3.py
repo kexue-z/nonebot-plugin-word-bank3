@@ -8,7 +8,7 @@ async def test_word_bank_set(app: App, db):
     from nonebot_plugin_word_bank3.models.typing_models import IndexType, MatchType
 
     async with app.test_server():
-        res = await WordBank.set(
+        _, res = await WordBank.set(
             index_type=IndexType.group,
             index_id=1,
             match_type=MatchType.congruence,
@@ -18,7 +18,7 @@ async def test_word_bank_set(app: App, db):
             require_to_me=False,
             weight=10,
         )
-        assert res
+        assert res is True
 
 
 @pytest.mark.asyncio
