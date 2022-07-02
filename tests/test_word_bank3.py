@@ -4,6 +4,7 @@ from nonebug import App
 
 @pytest.mark.asyncio
 async def test_word_bank_set(app: App, db):
+    """添加词条 全匹配 群聊"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import IndexType, MatchType
 
@@ -23,7 +24,7 @@ async def test_word_bank_set(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_congruence_match(app: App, db):
-
+    """测试群聊全匹配"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
         Answer,
@@ -71,7 +72,7 @@ async def test_word_bank_congruence_match(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_include_match(app: App, db):
-
+    """测试群聊模糊匹配"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
         Answer,
@@ -119,7 +120,7 @@ async def test_word_bank_include_match(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_regex_match(app: App, db):
-
+    """测试群聊正则匹配"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
         Answer,
@@ -167,7 +168,7 @@ async def test_word_bank_regex_match(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_gl__match(app: App, db):
-
+    """测试全局全匹配"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
         Answer,
@@ -215,7 +216,7 @@ async def test_word_bank_gl__match(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_gl_include_match(app: App, db):
-
+    """测试全局模糊匹配"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
         Answer,
@@ -263,7 +264,7 @@ async def test_word_bank_gl_include_match(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_gl_regex_match(app: App, db):
-
+    """测试全局正则匹配"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import (
         Answer,
@@ -310,8 +311,69 @@ async def test_word_bank_gl_regex_match(app: App, db):
 
 
 @pytest.mark.asyncio
-async def test_word_bank_delete_by_key(app: App, db):
+async def test_match_global(app: App, db):
+    """测试全局匹配"""
+    from nonebot_plugin_word_bank3.models.word_bank import WordBank
+    from nonebot_plugin_word_bank3.models.typing_models import (
+        Answer,
+        IndexType,
+        MatchType,
+        WordEntry,
+    )
 
+    async with app.test_server():
+        # 添加 全局 全匹配词条
+        _, res = await WordBank.set(
+            index_type=IndexType._global,
+            index_id=114,
+            match_type=MatchType.congruence,
+            key="114514",
+            answer="1919810",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+
+        # 添加 群聊 全匹配词条
+        _, res = await WordBank.set(
+            index_type=IndexType.group,
+            index_id=114,
+            match_type=MatchType.congruence,
+            key="114514",
+            answer="1145141919810",
+            creator_id=1,
+            require_to_me=False,
+            weight=10,
+        )
+        assert res is True
+        # 查询结果应该有 2 个
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=114,
+            key="114514",
+            to_me=False,
+        )
+
+        assert isinstance(res, WordEntry)
+        assert res.key == "114514"
+        assert isinstance(res.answer[0], Answer)
+        assert isinstance(res.answer[1], Answer)
+        assert len(res.answer) == 2
+
+        # 查询无结果
+        res = await WordBank.match(
+            index_type=IndexType.group,
+            index_id=114,
+            key="1919810",
+            to_me=False,
+        )
+        assert not res
+
+
+@pytest.mark.asyncio
+async def test_word_bank_delete_by_key(app: App, db):
+    """测试删除词条"""
     from typing import List
 
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
@@ -347,6 +409,7 @@ async def test_word_bank_delete_by_key(app: App, db):
 
 @pytest.mark.asyncio
 async def test_word_bank_clear_all(app: App, db):
+    """测试删除多个词条"""
     from nonebot_plugin_word_bank3.models.word_bank import WordBank
     from nonebot_plugin_word_bank3.models.typing_models import IndexType, MatchType
 
