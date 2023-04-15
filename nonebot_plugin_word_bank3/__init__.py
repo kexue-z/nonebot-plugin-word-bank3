@@ -4,6 +4,7 @@ import random
 from typing import List, Tuple, Optional
 from pathlib import Path
 import pytz
+import html
 
 from nonebot import on_regex, on_command, on_message, get_driver
 from nonebot.params import CommandArg, RegexGroup
@@ -434,12 +435,9 @@ async def handle_wb(event: MessageEvent, state: T_State):
         choices.append(ans.answer)
         weights.append(ans.weight)
     msg = random.choices(population=choices, weights=weights, k=1)[0]
-    msg = Message(msg)
+    msg = html.unescape(msg)
     await wb_matcher.finish(
-        Message.template(msg).format(
-            nickname=event.sender.card or event.sender.nickname,
-            sender_id=event.sender.user_id,
-        )
+        Message(msg)
     )
 
 
@@ -699,8 +697,7 @@ wb_cmd = on_command("#", block=True, priority=10, permission=PERM_EDIT)
 async def _(
     bot: Bot, event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()
 ):
-    result_list = arg.extract_plain_text().strip().split()
-    await wb_cmd.finish(str(await cmd(bot, event, arg.extract_plain_text().strip())))
+    await wb_cmd.finish(str(await cmd(bot, event, str(arg).strip())))
 
 
 # wb_search_cmd = on_regex(
