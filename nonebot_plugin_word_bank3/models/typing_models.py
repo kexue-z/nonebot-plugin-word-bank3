@@ -24,10 +24,21 @@ class IndexType(Enum):
     """私聊"""
     _global = 3
 
+class CmdType(Enum):
+    """操作类型 添加(1) 修改(2) 迁移(3)"""
+
+    add = 1
+    """添加"""
+    update = 2
+    """修改""" 
+    move = 3
+    """迁移"""
+
 
 class Answer(BaseModel):
     answer: str
     weight: int
+    last_cmd:int
     id: int
 
 

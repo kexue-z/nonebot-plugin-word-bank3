@@ -16,7 +16,7 @@ def regex_match(regex: str, text: str) -> bool:
         return False
 
 
-def get_session_id(event: MessageEvent) -> int:
+def get_session_id(event: MessageEvent) -> str:
     if isinstance(event, GroupMessageEvent):
         return event.group_id
     else:
@@ -94,3 +94,5 @@ async def save_and_convert_img(msg: Message, img_dir: Path):
                     continue
                 save_img(data, filepath)
             msg_seg.data["file"] = f"file:///{filepath.resolve()}"
+
+        
