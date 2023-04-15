@@ -568,7 +568,7 @@ class WordBank(Model):
         for wb in wb_list:
             key = ""
             key += str(wb["id"])
-            key += '.'
+            key += "."
             key += wb["key"]
             keys.append(key)
         return keys
@@ -624,7 +624,7 @@ class WordBank(Model):
         for wb in wb_list:
             keys.append(wb["key"])
         return keys
-    
+
     @staticmethod
     async def keys_id_ans(id: int) -> List[int]:
         ans_id: List[str] = []

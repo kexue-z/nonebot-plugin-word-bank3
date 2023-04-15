@@ -94,5 +94,3 @@ async def save_and_convert_img(msg: Message, img_dir: Path):
                     continue
                 save_img(data, filepath)
             msg_seg.data["file"] = f"file:///{filepath.resolve()}"
-
-        
