@@ -1,12 +1,12 @@
 import re
-import datetime
+import html
 import random
+import datetime
 from typing import List, Tuple, Optional
 from pathlib import Path
-import pytz
-import html
 
-from nonebot import on_regex, on_command, on_message, get_driver
+import pytz
+from nonebot import on_regex, get_driver, on_command, on_message, on_startswith
 from nonebot.params import CommandArg, RegexGroup
 from nonebot.typing import T_State, T_Handler
 from nonebot.matcher import Matcher
@@ -19,11 +19,11 @@ from nonebot.adapters.onebot.v11.permission import (
     PRIVATE_FRIEND,
 )
 
-from .config import Config
 from .utils import parse_msg, get_index_type, get_session_id, save_and_convert_img
+from .config import Config
 from .models.word_bank import WordBank
-from .models.word_bank_data import WordBankData
 from .models.typing_models import IndexType, MatchType, WordEntry
+from .models.word_bank_data import WordBankData
 
 add_model("nonebot_plugin_word_bank3.models.word_bank")
 add_model("nonebot_plugin_word_bank3.models.word_bank_data")
@@ -436,9 +436,7 @@ async def handle_wb(event: MessageEvent, state: T_State):
         weights.append(ans.weight)
     msg = random.choices(population=choices, weights=weights, k=1)[0]
     msg = html.unescape(msg)
-    await wb_matcher.finish(
-        Message(msg)
-    )
+    await wb_matcher.finish(Message(msg))
 
 
 PERM_EDIT = GROUP_ADMIN | GROUP_OWNER | PRIVATE_FRIEND | SUPERUSER
@@ -690,7 +688,7 @@ async def _(
         await matcher.finish(f"{result}")
 
 
-wb_cmd = on_command("#", block=True, priority=10, permission=PERM_EDIT)
+wb_cmd = on_startwith("#", block=True, priority=10, permission=PERM_EDIT)
 
 
 @wb_cmd.handle()
