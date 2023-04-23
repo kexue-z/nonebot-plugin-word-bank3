@@ -18,9 +18,9 @@ def regex_match(regex: str, text: str) -> bool:
 
 def get_session_id(event: MessageEvent) -> str:
     if isinstance(event, GroupMessageEvent):
-        return event.group_id
+        return str(event.group_id)
     else:
-        return event.user_id
+        return str(event.user_id)
 
 
 def get_index_type(event: MessageEvent) -> IndexType:

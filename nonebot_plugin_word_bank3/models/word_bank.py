@@ -6,7 +6,7 @@ from tortoise import fields
 from tortoise.models import Model
 from nonebot.adapters.onebot.v11.utils import unescape
 
-from .typing_models import Answer, IndexType, MatchType, CmdType, WordEntry
+from .typing_models import Answer, CmdType, IndexType, MatchType, WordEntry
 from .word_bank_data import WordBankData
 
 
@@ -527,16 +527,19 @@ class WordBank(Model):
         :返回:
           - `Tuple[List[int], bool]`: 已修改的答句ID列表, 是否修改成功
         """
-        for id in answer_id_list:
-            for origin_ans in await WordBank.filter(answer_id=id).values():
-                origin_answer = origin_ans["answer"]
-            await WordBankData.filter(id=id).update(answer=update_answer)
-            await WordBank.filter(answer_id=id).update(
-                update_time=datetime.now(),
-                last_key=origin_answer,
-                last_cmd=CmdType.update,
-            )
-        return answer_id_list, True
+        try:
+            for id in answer_id_list:
+                for origin_ans in await WordBank.filter(answer_id=id).values():
+                    origin_answer: str = origin_ans["answer"]
+                await WordBankData.filter(id=id).update(answer=update_answer)
+                await WordBank.filter(answer_id=id).update(
+                    update_time=datetime.now(),
+                    last_key=origin_answer,
+                    last_cmd=CmdType.update,
+                )
+            return answer_id_list, True
+        except UnboundLocalError:
+            return [], False
 
     @staticmethod
     async def key_return(index_type: IndexType, index_id: str, key: str) -> List[int]:
@@ -553,7 +556,7 @@ class WordBank(Model):
         :返回:
           - `List[int]`: 问句id列表
         """
-        ids: List[str] = []
+        ids: List[int] = []
         wb_list = await WordBank.filter(
             index_type=index_type.value, index_id=index_id, key=key
         ).all()
@@ -605,12 +608,12 @@ class WordBank(Model):
         index_type: IndexType, index_id: str, key: str
     ) -> List[int]:
         """回退最近操作"""
-        ids: List[str] = []
+        ids: List[int] = []
         wb_list = await WordBank.filter(
             index_type=index_type.value, index_id=index_id, key=key
         ).all()
         for wb in wb_list:
-            await WordBankData.filter(id=wb.answer_id).update(answer=wb["last_key"])
+            await WordBankData.filter(id=wb.answer_id).update(answer=wb["last_key"])  # type: ignore
             await WordBank.filter(id=wb.id).update(
                 update_time=datetime.now(), last_key=wb.key, last_cmd=2
             )
@@ -627,7 +630,7 @@ class WordBank(Model):
 
     @staticmethod
     async def keys_id_ans(id: int) -> List[int]:
-        ans_id: List[str] = []
+        ans_id: List[int] = []
         wb_list = await WordBank.filter(id=id).values()
         for wb in wb_list:
             ans_id.append(wb["answer_id"])
